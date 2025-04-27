@@ -1,12 +1,11 @@
 """
-This file consists of custom activation functions
+This file contains helper functions
 """
 
-from typing import Union, List, Tuple
+from typing import Union
 
 import torch
 from torch import nn
-from torch.autograd import Function
 from torch.nn import Sigmoid, Tanh, ReLU, Softplus, LeakyReLU, PReLU, ELU, SELU, GELU, SiLU, Mish
 
 
@@ -52,33 +51,28 @@ def get_activation_function(
 
 class NoisyActivation(nn.Module):
     def __init__(
-        self, activation, noise='none', mean=0.0, std=1.0, lambda_value=1.0
+        self, activation, noise='none', mean=0.0, std=1.0
     ):
         """
         Noisy Activation class to apply different noise formulations during training.
         
         Parameters:
         - activation: the activation function to use.
-        - noise: type of noise to apply (e.g., 'gaussian', 'poisson', 'multiplicative' or 'none').
+        - noise: type of noise to apply (e.g., 'gaussian', 'multiplicative' or 'none').
         - mean: mean for Gaussian noise.
         - std: standard deviation for Gaussian or multiplicative noise.
-        - lambda_value: rate parameter for Poisson noise.
         """
         super(NoisyActivation, self).__init__()
         self.activation = get_activation_function(activation)
         self.noise = noise
         self.mean = mean
         self.std = std
-        self.lambda_value = lambda_value
 
     def forward(self, x):
         if self.training:
             if self.noise == 'gaussian':
                 # Gaussian noise
                 return self.activation(x) + torch.randn_like(x) * self.std + self.mean
-            elif self.noise == 'poisson':
-                # Poisson noise
-                return self.activation(x) + torch.poisson(torch.full_like(x, self.lambda_value))
             elif self.noise == 'multiplicative':
                 # Multiplicative noise
                 return self.activation(x) * (torch.randn_like(x) * self.std + self.mean)

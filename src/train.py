@@ -22,7 +22,7 @@ import nltk
 from nltk.tokenize import sent_tokenize
 nltk.download("punkt_tab")
 
-from src.utils.activations import NoisyActivation
+from src.activations import NoisyActivation
 
 
 def set_seed(seed: int):
@@ -50,7 +50,6 @@ def replace_activation(
                     noise=args.noise_to_use,
                     mean=args.gaussian_mean,
                     std=args.gaussian_std,
-                    lambda_value=args.poisson_lambda,
                 )
             )
         else:
@@ -91,8 +90,6 @@ def main(args):
         extra_string = f'Noise - {args.noise_to_use}'
     elif args.noise_to_use in ['gaussian', 'multiplicative']:
         extra_string = f'Noise - {args.noise_to_use} | Mean - {args.gaussian_mean} | Std Dev - {args.gaussian_std}'
-    elif args.noise_to_use in ['poisson']:
-        extra_string = f'Noise - {args.noise_to_use} | Lambda - {args.poisson_lambda}'
     logging.info(
         f'{datetime.datetime.now()} | Dataset - {args.hf_dataset_name} | Model - {args.hf_model_name} | Activation - {args.activation_to_use} | {extra_string}')
     logging.info(f'Arguments are as follows \n{args}')
@@ -116,8 +113,6 @@ def main(args):
     
     if args.noise_to_use in ['gaussian', 'multiplicative']:
         out_dir = f'{out_dir}_{args.noise_to_use}_{args.gaussian_mean}_{args.gaussian_std}'
-    elif args.noise_to_use in ['poisson']:
-        out_dir = f'{out_dir}_{args.noise_to_use}_{args.poisson_lambda}'
     elif args.noise_to_use in ['none']:
         out_dir = out_dir
     out_dir = f'{out_dir}/{args.seed_to_use}'
@@ -398,13 +393,12 @@ if __name__ == "__main__":
         activation', type=str)
     parser.add_argument('--activation_to_use', default='baseline', help='Set it to the activation originally used \
         i.e. the baseline activation', type=str)
-    parser.add_argument('--noise_to_use', default='none', choices=['gaussian', 'poisson', 'multiplicative', 'none'],
+    parser.add_argument('--noise_to_use', default='none', choices=['gaussian', 'multiplicative', 'none'],
                         help='Set it to none for baseline', type=str)
     parser.add_argument('--gaussian_mean', default=0.0, help='Mean of Gaussian Dist for Gaussian and Multiplicative \
         noise', type=float)
     parser.add_argument('--gaussian_std', default=1.0, help='Std Dev of Gaussian Dist for Gaussian and Multiplicative \
         noise', type=float)
-    parser.add_argument('--poisson_lambda', default=1.0, help='Lambda of Poisson Dist for Poisson noise', type=float)
     
     # Training Arguments -----------------------------------------------------------------------------------------------
     parser.add_argument('--use_deterministic', action='store_true', default=False, help='Use deterministic algorithms')
